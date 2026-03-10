@@ -213,7 +213,7 @@ function drawTopology() {
     addLine('client', 'router', 'path-blue', '', 0);
 
     // Depending on state
-    if (solutions.vpn) {
+    if (solutions.vpn || solutions.tunnel) {
         addLine('router', 'gateway', 'path-green', '', 0);
         addLine('gateway', 'vpn', 'path-green', '', 50);
         addLine('vpn', 'remote', 'path-green', '', 0);
@@ -235,7 +235,7 @@ function drawTopology() {
 function updateSimulation() {
     isConnectable = solutions.pcp || solutions.vpn || solutions.utp || solutions.tunnel;
 
-    if (solutions.vpn) {
+    if (solutions.vpn || solutions.tunnel) {
         nodeVPN.classList.remove('hidden');
     } else {
         nodeVPN.classList.add('hidden');
@@ -247,6 +247,18 @@ function updateSimulation() {
     } else {
         document.getElementById('pcp-cgnat-badge').classList.add('hidden');
         document.getElementById('pcp-router-badge').classList.add('hidden');
+    }
+
+    if (solutions.utp) {
+        document.getElementById('utp-badge').classList.remove('hidden');
+    } else {
+        document.getElementById('utp-badge').classList.add('hidden');
+    }
+
+    if (solutions.tunnel) {
+        document.getElementById('tun-badge').classList.remove('hidden');
+    } else {
+        document.getElementById('tun-badge').classList.add('hidden');
     }
 
     if (currentMode === 'leeching') {
@@ -326,7 +338,7 @@ function spawnPacket() {
 
     if (currentMode === 'leeching') {
         path = ['client', 'router', 'gateway', 'remote'];
-        if (solutions.vpn) path = ['client', 'router', 'gateway', 'vpn', 'remote'];
+        if (solutions.vpn || solutions.tunnel) path = ['client', 'router', 'gateway', 'vpn', 'remote'];
         colorClass = 'bg-blue';
     } else {
         // Seeding
@@ -334,7 +346,7 @@ function spawnPacket() {
             path = ['remote', 'gateway']; // Drops at gateway
             colorClass = 'bg-red';
         } else {
-            if (solutions.vpn) {
+            if (solutions.vpn || solutions.tunnel) {
                 path = ['remote', 'vpn', 'gateway', 'router', 'client'];
             } else {
                 path = ['remote', 'gateway', 'router', 'client'];
