@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BitTorrent NAT444/CGNAT Dashboard</title>
+    <!-- Favicon -->
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🦈</text></svg>">
+
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-title">
+                <i class="fa-solid fa-network-wired logo-icon"></i>
+                <div>
+                    <h1>BitTorrent Mastery in NAT444/CGNAT Networks</h1>
+                    <p class="subtitle">Interactive visualization of P2P traffic flows, the NAT barrier, and strategic
+                        solutions.</p>
+                </div>
+            </div>
+            <div class="header-badges">
+                <span class="status-indicator">
+                    <span class="pulse-dot"></span> Simulation Active
+                </span>
+            </div>
+        </header>
+
+        <main class="dashboard-grid">
+            <!-- Left Panel: Control Panel -->
+            <aside class="panel control-panel">
+                <section class="control-group">
+                    <div class="section-header">
+                        <i class="fa-solid fa-route"></i>
+                        <h2>Traffic Flow Mode</h2>
+                    </div>
+                    <div class="mode-toggles">
+                        <label class="radio-card">
+                            <input type="radio" name="flowMode" value="leeching" checked>
+                            <div class="card-content">
+                                <i class="fa-solid fa-download"></i>
+                                <span>Leeching (Download)</span>
+                            </div>
+                        </label>
+                        <label class="radio-card">
+                            <input type="radio" name="flowMode" value="seeding">
+                            <div class="card-content">
+                                <i class="fa-solid fa-upload"></i>
+                                <span>Seeding (Upload)</span>
+                            </div>
+                        </label>
+                    </div>
+                    <div class="info-box" id="mode-info">
+                        <strong>Initiating Outbound Connections</strong><br>
+                        The NAT444 client sends an outbound request to a remote Seed. An implicit dynamic mapping allows
+                        return traffic.
+                    </div>
+                </section>
+
+                <div class="divider"></div>
+
+                <section class="control-group">
+                    <div class="section-header">
+                        <i class="fa-solid fa-wrench"></i>
+                        <h2>Strategic Solutions & Fixes</h2>
+                    </div>
+
+                    <div class="toggle-list">
+                        <!-- PCP -->
+                        <div class="toggle-item" id="item-pcp">
+                            <div class="toggle-info">
+                                <span class="badge badge-standard">PCP</span>
+                                <h3>Port Control Protocol</h3>
+                                <p>Request explicit port mapping from ISP gateway.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-pcp" class="solution-toggle">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+
+                        <!-- VPN -->
+                        <div class="toggle-item" id="item-vpn">
+                            <div class="toggle-info">
+                                <span class="badge badge-premium">VPN</span>
+                                <h3>VPN Port Forwarding</h3>
+                                <p>Bypass CGNAT with encrypted tunnel to public IP.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-vpn" class="solution-toggle">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+
+                        <!-- uTP -->
+                        <div class="toggle-item" id="item-utp">
+                            <div class="toggle-info">
+                                <span class="badge badge-protocol">uTP</span>
+                                <h3>uTorrent Transport</h3>
+                                <p>UDP-based transport congestion flow control.</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-utp" class="solution-toggle">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+
+                        <!-- Reverse Tunnel -->
+                        <div class="toggle-item" id="item-tunnel">
+                            <div class="toggle-info">
+                                <span class="badge badge-tunnel">TUN</span>
+                                <h3>Reverse Tunneling</h3>
+                                <p>Direct incoming traffic via outbound relay (e.g. Pinggy).</p>
+                            </div>
+                            <label class="switch">
+                                <input type="checkbox" id="toggle-tunnel" class="solution-toggle">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+                </section>
+            </aside>
+
+            <!-- Center Panel: Connection Topology (Canvas) -->
+            <section class="panel canvas-panel">
+                <div class="canvas-header">
+                    <h2>Network Topology View</h2>
+                    <div id="conn-status" class="status-badge badge-connectable">
+                        <i class="fa-solid fa-check-circle"></i> CONNECTABLE
+                    </div>
+                </div>
+
+                <div class="topology-area" id="topology-area">
+                    <!-- Network Nodes -->
+                    <div class="node client" id="node-client" style="left: 10%; top: 50%;">
+                        <div class="icon-wrapper"><i class="fa-solid fa-laptop"></i></div>
+                        <div class="node-name">Client</div>
+                        <div class="node-ip">192.168.1.5</div>
+                    </div>
+
+                    <div class="node router" id="node-router" style="left: 35%; top: 50%;">
+                        <div class="icon-wrapper"><i class="fa-solid fa-wifi"></i></div>
+                        <div class="node-name">Customer Router</div>
+                        <div class="node-ip">100.64.0.10</div>
+                    </div>
+
+                    <div class="node gateway" id="node-gateway" style="left: 60%; top: 50%;">
+                        <div class="icon-wrapper"><i class="fa-solid fa-server"></i></div>
+                        <div class="node-name">ISP Gateway</div>
+                        <div class="node-stat">(NAT444Barrier)</div>
+                        <div class="node-ip">203.0.113.5</div>
+                    </div>
+
+                    <div class="node remote" id="node-remote" style="left: 85%; top: 50%;">
+                        <div class="icon-wrapper"><i class="fa-solid fa-globe"></i></div>
+                        <div class="node-name" id="remote-name">Remote Seed</div>
+                        <div class="node-ip">198.51.100.2</div>
+                    </div>
+
+                    <div class="node vpn hidden" id="node-vpn" style="left: 60%; top: 15%;">
+                        <div class="icon-wrapper"><i class="fa-solid fa-shield-halved"></i></div>
+                        <div class="node-name">VPN/Relay Server</div>
+                        <div class="node-ip">192.0.2.5</div>
+                    </div>
+
+                    <!-- SVG Overlay for drawing lines and animations -->
+                    <svg class="lines-layer" id="lines-layer">
+                        <defs>
+                            <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6"
+                                markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" />
+                            </marker>
+                            <marker id="arrow-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6"
+                                markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" />
+                            </marker>
+                            <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6"
+                                markerHeight="6" orient="auto-start-reverse">
+                                <path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6" />
+                            </marker>
+                        </defs>
+                        <!-- Paths will be generated by JS -->
+                    </svg>
+
+                    <!-- HTML Elements for animated packets -->
+                    <div id="packets-container"></div>
+
+                    <!-- Drop Notification UI -->
+                    <div id="drop-zone" class="drop-zone hidden" style="left: 60%; top: 40%;">
+                        <i class="fa-solid fa-xmark fa-fade text-red"></i>
+                        <span class="drop-text">SILENT DROP</span>
+                    </div>
+
+                    <!-- Connection specific badges -->
+                    <div id="mapping-badge" class="mapping-badge hidden" style="left: 60%; top: 65%;">
+                        Implicit Mapping Created
+                    </div>
+
+                    <!-- PCP Mapping Badges -->
+                    <div id="pcp-cgnat-badge" class="port-map-badge hidden" style="left: 47.5%; top: 25%;">
+                        <div class="map-title"><i class="fa-solid fa-server"></i> CGNAT PCP Mapping</div>
+                        <div class="map-rule">203.0.113.5:<b>6881</b> &rarr; 100.64.0.10:<b>6881</b></div>
+                    </div>
+
+                    <div id="pcp-router-badge" class="port-map-badge hidden" style="left: 22.5%; top: 38%;">
+                        <div class="map-title"><i class="fa-solid fa-wifi"></i> Local Router Port Forward</div>
+                        <div class="map-rule">100.64.0.10:<b>6881</b> &rarr; 192.168.1.5:<b>6881</b></div>
+                    </div>
+                </div>
+
+                <div class="canvas-footer">
+                    <div class="action-desc" id="action-desc">
+                        Initializing outbound request to Remote Seed. Implicit dynamic mapping created.
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Panel: Telemetry & Impact -->
+            <aside class="panel telemetry-panel">
+                <section class="telemetry-group">
+                    <div class="section-header">
+                        <i class="fa-solid fa-gauge-high"></i>
+                        <h2>Performance Impact</h2>
+                    </div>
+
+                    <div class="gauge-container">
+                        <canvas id="speedChart"></canvas>
+                        <div class="gauge-value">
+                            <span id="speed-display">47.0</span>
+                            <span class="unit">MiB/s</span>
+                        </div>
+                    </div>
+
+                    <div class="perf-status text-green" id="perf-status">
+                        With Port Forwarding. Seeds jump to 47 MiB/s.
+                    </div>
+                </section>
+
+                <div class="divider"></div>
+
+                <section class="telemetry-group log-group">
+                    <div class="section-header">
+                        <i class="fa-solid fa-terminal"></i>
+                        <h2>Event Log Ticker</h2>
+                    </div>
+
+                    <div class="terminal-box" id="terminal-log">
+                        <!-- Log entries injected via JS -->
+                    </div>
+                </section>
+            </aside>
+        </main>
+    </div><!-- End app-container -->
+
+    <!-- Wireshark Modal Simulation -->
+    <div id="wireshark-modal" class="modal-overlay hidden">
+        <div class="modal-content wireshark-theme">
+            <div class="modal-header">
+                <div class="ws-title">
+                    <i class="fa-solid fa-water"></i>
+                    <span>Packet Capture Simulation - <span id="ws-interface">eth0</span></span>
+                </div>
+                <div class="modal-actions">
+                    <button id="ws-expand" class="btn-icon" title="Toggle Fullscreen"><i
+                            class="fa-solid fa-expand"></i></button>
+                    <button id="ws-play-pause" class="btn-icon" title="Play/Pause"><i
+                            class="fa-solid fa-pause"></i></button>
+                    <button id="ws-close" class="btn-icon" title="Close"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+
+            <!-- Packet List Pane -->
+            <div class="ws-pane packet-list-pane">
+                <table class="ws-table">
+                    <thead>
+                        <tr>
+                            <th width="50">No.</th>
+                            <th width="100">Time</th>
+                            <th width="140">Source</th>
+                            <th width="140">Destination</th>
+                            <th width="80">Protocol</th>
+                            <th width="80">Length</th>
+                            <th>Info</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ws-packets">
+                        <!-- Simulated packets will go here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Packet Details Pane -->
+            <div class="ws-pane packet-details-pane">
+                <div class="ws-tree" id="ws-details">
+                    <div class="tree-node">
+                        <div class="tree-line"><i class="fa-solid fa-caret-right"></i> Frame: <span
+                                id="ws-dt-len">0</span> bytes on wire</div>
+                        <div class="tree-children hidden">
+                            <div class="tree-item">Encapsulation type: Ethernet (1)</div>
+                            <div class="tree-item">Arrival Time: <span id="ws-dt-arr">...</span></div>
+                            <div class="tree-item">Epoch Time: <span id="ws-dt-epoch">...</span></div>
+                            <div class="tree-item">Frame Length: <span id="ws-dt-len2">0</span> bytes</div>
+                        </div>
+                    </div>
+
+                    <div class="tree-node">
+                        <div class="tree-line"><i class="fa-solid fa-caret-right"></i> Ethernet II, Src: <span
+                                id="ws-dt-mac-src">...</span>, Dst: <span id="ws-dt-mac-dst">...</span></div>
+                        <div class="tree-children hidden">
+                            <div class="tree-item">Destination: <span id="ws-dt-mac-dst2">...</span> (Broadcast)</div>
+                            <div class="tree-item">Source: <span id="ws-dt-mac-src2">...</span> (Micro-Star)</div>
+                            <div class="tree-item">Type: IPv4 (0x0800)</div>
+                        </div>
+                    </div>
+
+                    <div class="tree-node">
+                        <div class="tree-line"><i class="fa-solid fa-caret-right"></i> Internet Protocol Version 4, Src:
+                            <span id="ws-dt-ip-src">...</span>, Dst: <span id="ws-dt-ip-dst">...</span>
+                        </div>
+                        <div class="tree-children hidden">
+                            <div class="tree-item">Version: 4</div>
+                            <div class="tree-item">Header Length: 20 bytes (5)</div>
+                            <div class="tree-item">Total Length: <span id="ws-dt-iplen">...</span></div>
+                            <div class="tree-item">Identification: 0x4a3b (18995)</div>
+                            <div class="tree-item">Time to Live: 64</div>
+                            <div class="tree-item">Protocol: <span id="ws-dt-proto-num">...</span></div>
+                            <div class="tree-item">Source Address: <span id="ws-dt-ip-src2">...</span></div>
+                            <div class="tree-item">Destination Address: <span id="ws-dt-ip-dst2">...</span></div>
+                        </div>
+                    </div>
+
+                    <div class="tree-node" id="ws-dt-transport-node">
+                        <div class="tree-line"><i class="fa-solid fa-caret-right"></i> <span
+                                id="ws-dt-proto">Transmission Control Protocol</span>, Src Port: <span
+                                id="ws-dt-port-src">...</span>, Dst Port: <span id="ws-dt-port-dst">...</span></div>
+                        <div class="tree-children hidden" id="ws-dt-transport-children">
+                            <div class="tree-item">Source Port: <span id="ws-dt-port-src2">...</span></div>
+                            <div class="tree-item">Destination Port: <span id="ws-dt-port-dst2">...</span></div>
+                            <div class="tree-item">Sequence Number: 1 (relative)</div>
+                            <div class="tree-item">Acknowledgment Number: 1 (relative)</div>
+                            <div class="tree-item">Header Length: 20 bytes</div>
+                            <div class="tree-item">Flags: 0x018 (PSH, ACK)</div>
+                            <div class="tree-item">Window Size Value: 512</div>
+                        </div>
+                    </div>
+
+                    <div class="tree-node" id="ws-dt-app-node">
+                        <div class="tree-line text-blue"><i class="fa-solid fa-caret-right"></i> <span
+                                id="ws-dt-app-proto">BitTorrent Protocol</span></div>
+                        <div class="tree-children hidden" id="ws-dt-app-children">
+                            <div class="tree-item">Message Type: <span id="ws-dt-msg">...</span></div>
+                            <div class="tree-item">Payload length: <span id="ws-dt-paylen">...</span></div>
+                            <div class="tree-item">Info Hash: e3b0c44298fc1c149afbf4c8996fb92427ae41e4</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
